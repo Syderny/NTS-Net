@@ -7,7 +7,7 @@ from config import BATCH_SIZE, PROPOSAL_NUM, SAVE_FREQ, LR, WD, resume, save_dir
 from core import model, dataset
 from core.utils import init_log, progress_bar
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 start_epoch = 1
 save_dir = os.path.join(save_dir, datetime.now().strftime('%Y%m%d_%H%M%S'))
 if os.path.exists(save_dir):
@@ -17,12 +17,12 @@ logging = init_log(save_dir)
 _print = logging.info
 
 # read dataset
-trainset = dataset.CUB(root='./CUB_200_2011', is_train=True, data_len=None)
+trainset = dataset.CUB(root=r'C:/Users/DELL/workspace/NTS-Net/CUB_200_2011', is_train=True, data_len=None)
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE,
-                                          shuffle=True, num_workers=8, drop_last=False)
-testset = dataset.CUB(root='./CUB_200_2011', is_train=False, data_len=None)
+                                          shuffle=True, drop_last=False)
+testset = dataset.CUB(root=r'C:/Users/DELL/workspace/NTS-Net/CUB_200_2011', is_train=False, data_len=None)
 testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE,
-                                         shuffle=False, num_workers=8, drop_last=False)
+                                         shuffle=False, drop_last=False)
 # define model
 net = model.attention_net(topN=PROPOSAL_NUM)
 if resume:
@@ -46,12 +46,9 @@ schedulers = [MultiStepLR(raw_optimizer, milestones=[60, 100], gamma=0.1),
               MultiStepLR(part_optimizer, milestones=[60, 100], gamma=0.1),
               MultiStepLR(partcls_optimizer, milestones=[60, 100], gamma=0.1)]
 net = net.cuda()
-net = DataParallel(net)
+# net = DataParallel(net)
 
 for epoch in range(start_epoch, 500):
-    for scheduler in schedulers:
-        scheduler.step()
-
     # begin training
     _print('--' * 50)
     net.train()
@@ -79,6 +76,9 @@ for epoch in range(start_epoch, 500):
         concat_optimizer.step()
         partcls_optimizer.step()
         progress_bar(i, len(trainloader), 'train')
+
+    for scheduler in schedulers:
+        scheduler.step()
 
     if epoch % SAVE_FREQ == 0:
         train_loss = 0
@@ -109,7 +109,7 @@ for epoch in range(start_epoch, 500):
                 train_acc,
                 total))
 
-	# evaluate on test set
+	    # evaluate on test set
         test_loss = 0
         test_correct = 0
         total = 0
@@ -136,8 +136,8 @@ for epoch in range(start_epoch, 500):
                 test_acc,
                 total))
 
-	# save model
-        net_state_dict = net.module.state_dict()
+	    # save model
+        net_state_dict = net.state_dict()
         if not os.path.exists(save_dir):
             os.mkdir(save_dir)
         torch.save({

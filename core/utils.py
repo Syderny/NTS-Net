@@ -4,8 +4,9 @@ import sys
 import time
 import logging
 
-_, term_width = os.popen('stty size', 'r').read().split()
-term_width = int(term_width)
+# _, term_width = os.popen('stty size', 'r').read().split()
+# term_width = int(term_width)
+term_width = 80
 
 TOTAL_BAR_LENGTH = 40.
 last_time = time.time()
@@ -20,6 +21,7 @@ def progress_bar(current, total, msg=None):
     cur_len = int(TOTAL_BAR_LENGTH * current / total)
     rest_len = int(TOTAL_BAR_LENGTH - cur_len) - 1
 
+    sys.stdout.write('\r')
     sys.stdout.write(' [')
     for i in range(cur_len):
         sys.stdout.write('=')

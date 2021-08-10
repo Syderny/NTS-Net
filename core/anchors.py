@@ -98,3 +98,5 @@ if __name__ == '__main__':
         [0.55, 20, 30, 40, 50]
     ]), topn=100, iou_thresh=0.4)
     print(a)
+    
+    print(generate_default_anchor_maps())
